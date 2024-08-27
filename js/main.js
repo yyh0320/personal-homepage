@@ -141,44 +141,51 @@ setTimeout(function () {
 //   }
 // });
 
-// 获取天气
-// 请前往 https://www.mxnzp.com/doc/list 申请 app_id 和 app_secret
-const mainKey = "c577e8a40049cf51879ff72c9dc1ae8e"; // 高德开发者 Key
-const getWeather = () => {
-  fetch(`https://restapi.amap.com/v3/ip?key=${mainKey}`)
+//获取天气
+//请前往 https://www.mxnzp.com/doc/list 申请 app_id 和 app_secret
+//请前往 https://dev.qweather.com/ 申请 key
+const add_id = "vcpmlmqiqnjpxwq1"; // app_id
+const app_secret = "PeYnsesgkmK7qREhIFppIcsoN0ZShv3c"; // app_secret
+const key = "691d007d585841c09e9b41e79853ecc2"; // key
+function getWeather() {
+  fetch(
+    "https://www.mxnzp.com/api/ip/self?app_id=" +
+      add_id +
+      "&app_secret=" +
+      app_secret
+  )
     .then((response) => response.json())
-    .then((res) => {
-      const adcode = res.adcode;
-      $("#city_text").html(res.city);
+    .then((data) => {
+      let str = data.data.city;
+      let city = str.replace(/市/g, "");
+      console.log(data, "sssss");
+      $("#city_text").html(city);
       fetch(
-        `https://restapi.amap.com/v3/weather/weatherInfo?key=${mainKey}&city=${adcode}`
+        "https://geoapi.qweather.com/v2/city/lookup?location=" +
+          city +
+          "&number=1&key=" +
+          key
       )
         .then((response) => response.json())
-        .then((res) => {
-          if (res.status) {
-            $("#wea_text").html(res.lives[0].weather);
-            $("#tem_text").html(res.lives[0].temperature + "°C&nbsp;");
-            $("#win_text").html(res.lives[0].winddirection + "风");
-            $("#win_speed").html(res.lives[0].windpower + "级");
-          } else {
-            console.error("天气信息获取失败");
-            iziToast.show({
-              timeout: 2000,
-              icon: "fa-solid fa-cloud-sun",
-              message: "天气信息获取失败",
+        .then((location) => {
+          let id = location.location[0].id;
+          fetch(
+            "https://devapi.qweather.com/v7/weather/now?location=" +
+              id +
+              "&key=" +
+              key
+          )
+            .then((response) => response.json())
+            .then((weather) => {
+              $("#wea_text").html(weather.now.text);
+              $("#tem_text").html(weather.now.temp + "°C&nbsp;");
+              $("#win_text").html(weather.now.windDir);
+              $("#win_speed").html(weather.now.windScale + "级");
             });
-          }
         });
     })
-    .catch((err) => {
-      console.error("天气信息获取失败：" + err);
-      iziToast.show({
-        timeout: 2000,
-        icon: "fa-solid fa-cloud-sun",
-        message: "天气信息获取失败",
-      });
-    });
-};
+    .catch(console.error);
+}
 
 getWeather();
 
